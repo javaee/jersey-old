@@ -37,58 +37,27 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package com.sun.jersey.api.model;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
+package com.sun.jersey.impl.json;
 
-/**
- *
- * @author Paul.Sandoz@Sun.Com
- */
-public abstract class AbstractMethod implements AnnotatedElement {
-    private Method method;
+import java.io.Serializable;
+import java.util.List;
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlType;
 
-    private Annotation[] annotations;
 
-    private AbstractResource resource;
-
-    public AbstractMethod(AbstractResource resource, Method method, Annotation[] annotations) {
-        this.method = method;
-        this.annotations = annotations;
-        this.resource = resource;
-    }
-
-    public AbstractResource getResource() {
-        return resource;
-    }
-    
-    public Method getMethod() {
-        return method;
-    }
-
-    @Override
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        for (Annotation a : annotations) {
-            if (annotationType == a.annotationType())
-                return annotationType.cast(a);
-        }
-        return null;
-    }
-
-    @Override
-    public Annotation[] getAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return getAnnotation(annotationType) != null;
-    }
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlType(name = "", propOrder = { "title", "description", "note" })
+@XmlRootElement(name = "bugReport")
+public class BugReport implements Serializable
+{
+    @XmlElement
+    protected String title;
+    @XmlElement
+    protected String description;
+    protected List<Note> note;
 }
+

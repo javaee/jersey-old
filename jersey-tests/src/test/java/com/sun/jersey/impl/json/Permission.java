@@ -37,58 +37,37 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package com.sun.jersey.api.model;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
+package com.sun.jersey.impl.json;
 
-/**
- *
- * @author Paul.Sandoz@Sun.Com
- */
-public abstract class AbstractMethod implements AnnotatedElement {
-    private Method method;
+import java.util.LinkedList;
+import java.util.List;
+import javax.xml.bind.annotation.XmlRootElement;
 
-    private Annotation[] annotations;
+@XmlRootElement
+public class Permission {
+    public Integer id;
+    public List<Permission> children;          // optional, holds the children permission of this one
 
-    private AbstractResource resource;
-
-    public AbstractMethod(AbstractResource resource, Method method, Annotation[] annotations) {
-        this.method = method;
-        this.annotations = annotations;
-        this.resource = resource;
+    public static  Permission getRootPermision() {
+        Permission result = new Permission();
+        result.id = 7;
+        result.children = new LinkedList<Permission>();
+        result.children.add(getChildPermission());
+        return result;
     }
 
-    public AbstractResource getResource() {
-        return resource;
-    }
-    
-    public Method getMethod() {
-        return method;
-    }
-
-    @Override
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        for (Annotation a : annotations) {
-            if (annotationType == a.annotationType())
-                return annotationType.cast(a);
-        }
-        return null;
+    public static Permission getChildPermission() {
+        Permission result = new Permission();
+        result.id = 8;
+        result.children = new LinkedList<Permission>();
+        result.children.add(get2ndLevelChildPermission());
+        return result;
     }
 
-    @Override
-    public Annotation[] getAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return getAnnotation(annotationType) != null;
+    public static Permission get2ndLevelChildPermission() {
+        Permission result = new Permission();
+        result.id = 9;
+        return result;
     }
 }

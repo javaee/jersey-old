@@ -1,4 +1,62 @@
 release 1.5 (11-2010)
+- Fixed issue 206
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=206
+  WADL resource params must also be supported 
+  for resource class fields or resource class bean properties
+- Fixed issue 289
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=289
+  The filter init param "com.sun.jersey.config.feature.FilterContextPath" can
+  be used to declare a filter context path.
+  For example if the URL pattern of the Jersey configured filter is
+  "/filterContext/*" and the param value is "/filterContext" then the base URI
+  of the application is defined to be
+  "http(s)://host:port/contextPath/filterContextPath/".
+  Note that an init param is required because the Servlet 2.x API does not
+  provide access to the URI pattern defined in the web.xml.
+- Fixed issue 452
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=452
+  It is an error if a resource class is annotated with more than one
+  Jersey-based scope annotation e.g. @Singleton and @PerRequest.
+- Fixed issue 595
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=595
+  When mapping exceptions to responses if the Log level is FINE when the
+  exception will be logged. This changes the current behaviour where the
+  exception was logged when tracing was enabled. Thus when Jersey is used
+  as a filter with tracing enabled 404 mapped exceptions will not be logged.
+- Fixed issue 587
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=587
+  Upgrade to tag lib version 1.2 for Jersey's JSP support.
+- Fixed issue 487
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=487
+  Client side LoggingFilter - headers were printed out according to internal
+  structure declaration, not as their real representation in final http
+  request.
+- Fixed issue 593
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=593
+  Changed internal matching request to utilize an empty InputStream rather
+  than a null value.
+- Fixed issue 592
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=592
+  Documented the GlassFish servlet initialization parameter
+    org.glassfish.web.isDefaultErrorPageEnabled
+  that can be used to disable GlassFish default error page support.
+- Fixed issue 590
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=590
+  Added check before adding container notifier for existing ones and add them
+  to new set and move this from ServletCointaner.initiate to configure
+  Moved reload functionality to scanning resource config, cache last scanning
+  results and use them to compute added/removed classes and reflect this change
+  in newly scanned set.
+- Fixed issue 589
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=589
+  Related to https://glassfish.dev.java.net/issues/show_bug.cgi?id=13649
+  Checking "assignability" before actually creating instance of class
+  found using ServiceFinder to prevent classloading issues.
+- Fixed issue 478
+  https://jersey.dev.java.net/issues/show_bug.cgi?id=478
+  Applies when marshalling a collection to JSON and MAPPED or NATURAL JSON notations
+  are used. A JSON array is generated if root unwrapping is set to true.
+  Otherwise, if root unwrapping is set to false, a JSON object is returned.
 
 release 1.4 (11-09-2010)
 - Fixed issue 431

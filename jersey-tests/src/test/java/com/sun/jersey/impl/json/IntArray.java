@@ -37,58 +37,71 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package com.sun.jersey.api.model;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
+package com.sun.jersey.impl.json;
+
+import java.util.Arrays;
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author Paul.Sandoz@Sun.Com
+ * @author japod
  */
-public abstract class AbstractMethod implements AnnotatedElement {
-    private Method method;
+@XmlRootElement(name="intArray")
+public class IntArray {
 
-    private Annotation[] annotations;
+    public int[] intArray;
 
-    private AbstractResource resource;
+    public Integer[] integerArray;
 
-    public AbstractMethod(AbstractResource resource, Method method, Annotation[] annotations) {
-        this.method = method;
-        this.annotations = annotations;
-        this.resource = resource;
-    }
+    public  int number;
 
-    public AbstractResource getResource() {
-        return resource;
-    }
-    
-    public Method getMethod() {
-        return method;
-    }
+    public IntArray(){}
 
     @Override
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        for (Annotation a : annotations) {
-            if (annotationType == a.annotationType())
-                return annotationType.cast(a);
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
         }
-        return null;
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final IntArray other = (IntArray) obj;
+        if (!Arrays.equals(this.intArray, other.intArray)) {
+            return false;
+        }
+        if (!Arrays.deepEquals(this.integerArray, other.integerArray)) {
+            return false;
+        }
+        if (this.number != other.number) {
+            return false;
+        }
+        return true;
     }
 
     @Override
-    public Annotation[] getAnnotations() {
-        return annotations.clone();
+    public int hashCode() {
+        int hash = 7;
+        hash = 89 * hash + Arrays.hashCode(this.intArray);
+        hash = 89 * hash + Arrays.deepHashCode(this.integerArray);
+        hash = 89 * hash + this.number;
+        return hash;
     }
 
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return annotations.clone();
-    }
 
     @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return getAnnotation(annotationType) != null;
+    public String toString() {
+        return String.format("{ \"intArray\":%s, \"integerArray\":%s, \"number\":%d}", intArray, integerArray, number);
     }
+
+    public static Object createTestInstance() {
+        IntArray result = new IntArray();
+        
+        result.number = 8;
+        result.intArray = new int[]{4};
+        result.integerArray = new Integer[]{3};
+
+        return result;
+    }
+
 }

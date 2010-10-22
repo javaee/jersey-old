@@ -37,58 +37,48 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package com.sun.jersey.api.model;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
+package com.sun.jersey.impl.json;
 
-/**
- *
- * @author Paul.Sandoz@Sun.Com
- */
-public abstract class AbstractMethod implements AnnotatedElement {
-    private Method method;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.impl.AbstractResourceTester;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.client.filter.LoggingFilter;
+import com.sun.jersey.api.core.DefaultResourceConfig;
+import com.sun.jersey.api.core.ResourceConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
+import javax.ws.rs.Produces;
+import javax.ws.rs.core.MediaType;
 
-    private Annotation[] annotations;
-
-    private AbstractResource resource;
-
-    public AbstractMethod(AbstractResource resource, Method method, Annotation[] annotations) {
-        this.method = method;
-        this.annotations = annotations;
-        this.resource = resource;
+public class NestedArrayTest extends AbstractResourceTester {
+    public NestedArrayTest(String testName) {
+        super(testName);
     }
 
-    public AbstractResource getResource() {
-        return resource;
+    @Path("/")
+    public static class PermissionResource {
+        @GET @Produces("application/json")
+        public Permission get() {
+            return Permission.getRootPermision();
+        }
     }
     
-    public Method getMethod() {
-        return method;
-    }
 
-    @Override
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        for (Annotation a : annotations) {
-            if (annotationType == a.annotationType())
-                return annotationType.cast(a);
-        }
-        return null;
-    }
+    public void testNestedArray() throws Exception {
+        ResourceConfig rc = new DefaultResourceConfig(PermissionResource.class);
+        rc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
+        initiateWebApplication(rc);
 
-    @Override
-    public Annotation[] getAnnotations() {
-        return annotations.clone();
-    }
+        ClientConfig cc = new DefaultClientConfig();
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
+        WebResource r = resource("/", cc);
+        r.addFilter(new LoggingFilter());
 
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return annotations.clone();
-    }
+        String jsonResult = r.accept(MediaType.APPLICATION_JSON).get(String.class);
 
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return getAnnotation(annotationType) != null;
-    }
+        assertFalse(jsonResult.contains("children\":{"));
+    }        
 }

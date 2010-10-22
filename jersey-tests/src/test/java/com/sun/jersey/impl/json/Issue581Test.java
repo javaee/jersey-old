@@ -62,24 +62,23 @@ import javax.ws.rs.ext.Provider;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
 
-/**
- *
- * @author Jakub.Podlesak@Sun.Com
- */
-public class JSONFromJAXBInheritanceTest extends AbstractResourceTester {
-    public JSONFromJAXBInheritanceTest(String testName) {
+public class Issue581Test extends AbstractResourceTester {
+    public Issue581Test(String testName) {
         super(testName);
     }
 
     @Provider
     public static class JAXBContextResolver implements ContextResolver<JAXBContext> {
+
         private JAXBContext context;
-        private final Class[] cTypes = {Animal.class, AnimalList.class, Dog.class, Cat.class};
+        
+        private final Class[] cTypes = {BugReport.class, Note.class};
+
         private final Set<Class> types;
         public JAXBContextResolver() {
             try {
                 this.types = new HashSet<Class>(Arrays.asList(cTypes));
-                this.context = new JSONJAXBContext(JSONConfiguration.mapped().rootUnwrapping(false).build(), cTypes);
+                this.context = new JSONJAXBContext(JSONConfiguration.natural().usePrefixesAtNaturalAttributes().build(), cTypes);
             } catch (JAXBException ex) {
                 throw new RuntimeException(ex);
             }
@@ -92,16 +91,17 @@ public class JSONFromJAXBInheritanceTest extends AbstractResourceTester {
     }
     
     @Path("/")
-    public static class AnimalResource {
+    public static class BugReportResource {
         @POST @Consumes("application/json") @Produces("application/json")
-        public Animal get(Animal b) {
+        public BugReport get(BugReport b) {
             return b;
         }
     }
     
-    public void testAnimalResource() throws Exception {
+
+    public void testBugReportResource() throws Exception {
         JAXBContextResolver cr = new JAXBContextResolver();
-        ResourceConfig rc = new DefaultResourceConfig(AnimalResource.class);
+        ResourceConfig rc = new DefaultResourceConfig(BugReportResource.class);
         rc.getSingletons().add(cr);
         rc.getProperties().put(ResourceConfig.PROPERTY_CONTAINER_REQUEST_FILTERS, LoggingFilter.class.getName());
         rc.getProperties().put(ResourceConfig.PROPERTY_CONTAINER_RESPONSE_FILTERS, LoggingFilter.class.getName());
@@ -109,10 +109,15 @@ public class JSONFromJAXBInheritanceTest extends AbstractResourceTester {
 
         ClientConfig cc = new DefaultClientConfig();
         cc.getClasses().add(cr.getClass());
+        cc.getSingletons().add(cr);
         WebResource r = resource("/", cc);
-        System.out.println(r.type(MediaType.APPLICATION_JSON).post(String.class, new Animal("bobik animal")));
-        assertEquals("bobik animal", r.type("application/json").post(Animal.class, new Animal("bobik animal")).name);
-        assertEquals(Cat.class, r.type(MediaType.APPLICATION_JSON).post(Animal.class, new Cat("bobik cat", 9)).getClass());
-        assertEquals(Dog.class, r.type(MediaType.APPLICATION_JSON).post(Animal.class, new Dog("bobik dog", 12)).getClass());
+        BugReport br = new BugReport();
+        br.description = "BR desc";
+        br.title = "BR title";
+
+        BugReport result = r.type(MediaType.APPLICATION_JSON).post(BugReport.class, br);
+
+        assertEquals(br.description, result.description);
+        assertEquals(br.title, result.title);
     }        
 }

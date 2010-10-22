@@ -48,71 +48,61 @@ import com.sun.jersey.api.container.filter.LoggingFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.api.json.JSONJAXBContext;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
+import javax.xml.bind.annotation.XmlRootElement;
 
-/**
- *
- * @author Jakub.Podlesak@Sun.Com
- */
-public class JSONFromJAXBInheritanceTest extends AbstractResourceTester {
-    public JSONFromJAXBInheritanceTest(String testName) {
+public class JacksonNullStringTest extends AbstractResourceTester {
+    public JacksonNullStringTest(String testName) {
         super(testName);
     }
 
-    @Provider
-    public static class JAXBContextResolver implements ContextResolver<JAXBContext> {
-        private JAXBContext context;
-        private final Class[] cTypes = {Animal.class, AnimalList.class, Dog.class, Cat.class};
-        private final Set<Class> types;
-        public JAXBContextResolver() {
-            try {
-                this.types = new HashSet<Class>(Arrays.asList(cTypes));
-                this.context = new JSONJAXBContext(JSONConfiguration.mapped().rootUnwrapping(false).build(), cTypes);
-            } catch (JAXBException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        
-        @Override
-        public JAXBContext getContext(Class<?> c) {
-            return types.contains(c) ? context : null;
-        }
+    @XmlRootElement
+    public static class NullStringBean {
+        public String a;
+        public String b;
+        public String c;
     }
-    
+
     @Path("/")
-    public static class AnimalResource {
+    public static class NullStringResource {
         @POST @Consumes("application/json") @Produces("application/json")
-        public Animal get(Animal b) {
+        public NullStringBean get(NullStringBean b) {
             return b;
         }
     }
     
-    public void testAnimalResource() throws Exception {
-        JAXBContextResolver cr = new JAXBContextResolver();
-        ResourceConfig rc = new DefaultResourceConfig(AnimalResource.class);
-        rc.getSingletons().add(cr);
+
+    public void testNullStringBean() throws Exception {
+        ResourceConfig rc = new DefaultResourceConfig(NullStringResource.class);
         rc.getProperties().put(ResourceConfig.PROPERTY_CONTAINER_REQUEST_FILTERS, LoggingFilter.class.getName());
         rc.getProperties().put(ResourceConfig.PROPERTY_CONTAINER_RESPONSE_FILTERS, LoggingFilter.class.getName());
+        rc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
         initiateWebApplication(rc);
 
         ClientConfig cc = new DefaultClientConfig();
-        cc.getClasses().add(cr.getClass());
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
         WebResource r = resource("/", cc);
-        System.out.println(r.type(MediaType.APPLICATION_JSON).post(String.class, new Animal("bobik animal")));
-        assertEquals("bobik animal", r.type("application/json").post(Animal.class, new Animal("bobik animal")).name);
-        assertEquals(Cat.class, r.type(MediaType.APPLICATION_JSON).post(Animal.class, new Cat("bobik cat", 9)).getClass());
-        assertEquals(Dog.class, r.type(MediaType.APPLICATION_JSON).post(Animal.class, new Dog("bobik dog", 12)).getClass());
+
+        NullStringBean orig = new NullStringBean();
+        orig.b = "something not null";
+
+        NullStringBean result = r.type(MediaType.APPLICATION_JSON).post(NullStringBean.class, orig);
+
+        assertEquals(result.a, orig.a);
+        assertEquals(result.b, orig.b);
+        assertEquals(result.c, orig.c);
+
+        NullStringBean result1 =
+                r.type(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .post(NullStringBean.class, "{\"a\":null,\"b\":\"something not null\"}");
+
+        assertEquals(result1.a, orig.a);
+        assertEquals(result1.b, orig.b);
+        assertEquals(result1.c, orig.c);
     }        
 }

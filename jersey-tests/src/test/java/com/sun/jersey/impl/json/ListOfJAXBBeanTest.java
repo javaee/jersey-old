@@ -93,6 +93,7 @@ public class ListOfJAXBBeanTest extends AbstractResourceTester {
             }
         }
         
+        @Override
         public JAXBContext getContext(Class<?> c) {
             JAXBContext myContext = unwrappingOn ? unwrappingContext : wrappingContext;
             return types.contains(c) ? myContext : null;
@@ -113,7 +114,7 @@ public class ListOfJAXBBeanTest extends AbstractResourceTester {
         rawTestDogsResource();
     }
     
-    public void disabledTestDogsResourceUnwrappingOff() throws Exception {
+    public void testDogsResourceUnwrappingOff() throws Exception {
         unwrappingOn = false;
         rawTestDogsResource();
     }
@@ -131,8 +132,8 @@ public class ListOfJAXBBeanTest extends AbstractResourceTester {
         cc.getSingletons().add(cr);
         WebResource r = resource("/", cc);
         List<Dog> dogs = new LinkedList<Dog>();
-        dogs.add(new Dog("Alik"));
-        dogs.add(new Dog("Azor"));
+        dogs.add(new Dog("Alik", 12));
+        dogs.add(new Dog("Azor", 1));
         GenericType<List<Dog>> genericDogCollection =
                 new GenericType<List<Dog>>() {};
 

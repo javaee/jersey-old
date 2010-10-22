@@ -37,58 +37,49 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package com.sun.jersey.api.model;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
+package com.sun.jersey.impl.lifecycle;
+
+import com.sun.jersey.impl.AbstractResourceTester;
+import com.sun.jersey.spi.inject.Errors;
+import com.sun.jersey.spi.resource.PerRequest;
+import com.sun.jersey.spi.resource.Singleton;
+import java.util.List;
+import javax.ws.rs.GET;
+import javax.ws.rs.Path;
 
 /**
  *
- * @author Paul.Sandoz@Sun.Com
+ * @author Paul Sandoz
  */
-public abstract class AbstractMethod implements AnnotatedElement {
-    private Method method;
-
-    private Annotation[] annotations;
-
-    private AbstractResource resource;
-
-    public AbstractMethod(AbstractResource resource, Method method, Annotation[] annotations) {
-        this.method = method;
-        this.annotations = annotations;
-        this.resource = resource;
+public class MultipleScopeTest extends AbstractResourceTester {
+            
+    public MultipleScopeTest(String testName) {
+        super(testName);
     }
-
-    public AbstractResource getResource() {
-        return resource;
+        
+    @Path("/")
+    @PerRequest
+    @Singleton
+    public static class MultipleScopeResource {
+        @GET
+        public String doGet() {
+            return "GET";
+        }
     }
     
-    public Method getMethod() {
-        return method;
+    private Errors.ErrorMessagesException catches(Closure c) {
+        return catches(c, Errors.ErrorMessagesException.class);
     }
 
-    @Override
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        for (Annotation a : annotations) {
-            if (annotationType == a.annotationType())
-                return annotationType.cast(a);
-        }
-        return null;
-    }
+    public void testMultipleScopeResource() {
+        List<Errors.ErrorMessage> messages = catches(new Closure() {
+            @Override
+            public void f() {
+                initiateWebApplication(MultipleScopeResource.class);
+            }
+        }).messages;
 
-    @Override
-    public Annotation[] getAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return getAnnotation(annotationType) != null;
+        assertEquals(1, messages.size());
     }
 }

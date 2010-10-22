@@ -37,58 +37,53 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package com.sun.jersey.api.model;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
+package com.sun.jersey.impl.json;
+
+import java.util.Formatter;
+import java.util.LinkedList;
+import java.util.List;
+
+import javax.xml.bind.annotation.XmlRootElement;
 
 /**
  *
- * @author Paul.Sandoz@Sun.Com
+ * @author mchenryc
  */
-public abstract class AbstractMethod implements AnnotatedElement {
-    private Method method;
-
-    private Annotation[] annotations;
-
-    private AbstractResource resource;
-
-    public AbstractMethod(AbstractResource resource, Method method, Annotation[] annotations) {
-        this.method = method;
-        this.annotations = annotations;
-        this.resource = resource;
+@XmlRootElement(name = "emptyListBean")
+public class EmptyListBean {
+    public List<String> empty = new LinkedList<String>() {{add("non empty!!");}};
+    
+    public static Object createTestInstance() {
+        EmptyListBean instance = new EmptyListBean();
+        instance.empty = new LinkedList<String>();
+        return instance;
     }
 
-    public AbstractResource getResource() {
-        return resource;
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        final EmptyListBean other = (EmptyListBean) obj;
+        if (this.empty != other.empty && (this.empty == null || !this.empty.equals(other.empty))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 31 * hash + (this.empty != null ? this.empty.hashCode() : 0);
+        return hash;
     }
     
-    public Method getMethod() {
-        return method;
-    }
-
     @Override
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        for (Annotation a : annotations) {
-            if (annotationType == a.annotationType())
-                return annotationType.cast(a);
-        }
-        return null;
-    }
-
-    @Override
-    public Annotation[] getAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return getAnnotation(annotationType) != null;
+    public String toString() {
+        return (new Formatter()).format("LwNB(n=%d,isNull:%s)", (empty != null) ? empty.size() : 0, (empty==null)).toString();
     }
 }

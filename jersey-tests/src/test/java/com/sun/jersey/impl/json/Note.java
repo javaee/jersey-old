@@ -37,58 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package com.sun.jersey.api.model;
 
-import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
-import java.lang.reflect.Method;
 
-/**
- *
- * @author Paul.Sandoz@Sun.Com
- */
-public abstract class AbstractMethod implements AnnotatedElement {
-    private Method method;
+package com.sun.jersey.impl.json;
 
-    private Annotation[] annotations;
+import javax.xml.bind.annotation.XmlType;
 
-    private AbstractResource resource;
-
-    public AbstractMethod(AbstractResource resource, Method method, Annotation[] annotations) {
-        this.method = method;
-        this.annotations = annotations;
-        this.resource = resource;
-    }
-
-    public AbstractResource getResource() {
-        return resource;
-    }
-    
-    public Method getMethod() {
-        return method;
-    }
-
-    @Override
-    public <T extends Annotation> T getAnnotation(Class<T> annotationType) {
-        for (Annotation a : annotations) {
-            if (annotationType == a.annotationType())
-                return annotationType.cast(a);
-        }
-        return null;
-    }
-
-    @Override
-    public Annotation[] getAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public Annotation[] getDeclaredAnnotations() {
-        return annotations.clone();
-    }
-
-    @Override
-    public boolean isAnnotationPresent(Class<? extends Annotation> annotationType) {
-        return getAnnotation(annotationType) != null;
-    }
+@XmlType
+public class Note {
+    String note = "a note";
 }

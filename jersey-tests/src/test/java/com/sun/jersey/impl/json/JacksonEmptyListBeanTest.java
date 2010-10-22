@@ -44,75 +44,65 @@ import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.impl.AbstractResourceTester;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.container.filter.LoggingFilter;
+import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.api.core.DefaultResourceConfig;
 import com.sun.jersey.api.core.ResourceConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.api.json.JSONJAXBContext;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.ext.ContextResolver;
-import javax.ws.rs.ext.Provider;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 
-/**
- *
- * @author Jakub.Podlesak@Sun.Com
- */
-public class JSONFromJAXBInheritanceTest extends AbstractResourceTester {
-    public JSONFromJAXBInheritanceTest(String testName) {
+public class JacksonEmptyListBeanTest extends AbstractResourceTester {
+    public JacksonEmptyListBeanTest(String testName) {
         super(testName);
     }
 
-    @Provider
-    public static class JAXBContextResolver implements ContextResolver<JAXBContext> {
-        private JAXBContext context;
-        private final Class[] cTypes = {Animal.class, AnimalList.class, Dog.class, Cat.class};
-        private final Set<Class> types;
-        public JAXBContextResolver() {
-            try {
-                this.types = new HashSet<Class>(Arrays.asList(cTypes));
-                this.context = new JSONJAXBContext(JSONConfiguration.mapped().rootUnwrapping(false).build(), cTypes);
-            } catch (JAXBException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        
-        @Override
-        public JAXBContext getContext(Class<?> c) {
-            return types.contains(c) ? context : null;
-        }
-    }
-    
     @Path("/")
-    public static class AnimalResource {
+    public static class EmptyListResource {
         @POST @Consumes("application/json") @Produces("application/json")
-        public Animal get(Animal b) {
+        public EmptyListBean get(EmptyListBean b) {
             return b;
         }
     }
     
-    public void testAnimalResource() throws Exception {
-        JAXBContextResolver cr = new JAXBContextResolver();
-        ResourceConfig rc = new DefaultResourceConfig(AnimalResource.class);
-        rc.getSingletons().add(cr);
-        rc.getProperties().put(ResourceConfig.PROPERTY_CONTAINER_REQUEST_FILTERS, LoggingFilter.class.getName());
-        rc.getProperties().put(ResourceConfig.PROPERTY_CONTAINER_RESPONSE_FILTERS, LoggingFilter.class.getName());
+
+    public void testEmptyListBean() throws Exception {
+        ResourceConfig rc = new DefaultResourceConfig(EmptyListResource.class);
+        rc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
         initiateWebApplication(rc);
 
         ClientConfig cc = new DefaultClientConfig();
-        cc.getClasses().add(cr.getClass());
+        cc.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, true);
         WebResource r = resource("/", cc);
-        System.out.println(r.type(MediaType.APPLICATION_JSON).post(String.class, new Animal("bobik animal")));
-        assertEquals("bobik animal", r.type("application/json").post(Animal.class, new Animal("bobik animal")).name);
-        assertEquals(Cat.class, r.type(MediaType.APPLICATION_JSON).post(Animal.class, new Cat("bobik cat", 9)).getClass());
-        assertEquals(Dog.class, r.type(MediaType.APPLICATION_JSON).post(Animal.class, new Dog("bobik dog", 12)).getClass());
-    }        
+        r.addFilter(new LoggingFilter());
+
+        EmptyListBean orig = (EmptyListBean)EmptyListBean.createTestInstance();
+
+        EmptyListBean result = r.type(MediaType.APPLICATION_JSON).post(EmptyListBean.class, orig);
+
+        assertTrue(result.empty.isEmpty());
+
+        EmptyListBean result1 =
+                r.type(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .post(EmptyListBean.class, "{\"empty\":[]}");
+
+        assertTrue(result1.empty.isEmpty());
+
+        orig.empty = null;
+
+        EmptyListBean result2 = r.type(MediaType.APPLICATION_JSON).post(EmptyListBean.class, orig);
+
+        assertNull(result2.empty);
+
+        EmptyListBean result3 =
+                r.type(MediaType.APPLICATION_JSON)
+                    .accept(MediaType.APPLICATION_JSON)
+                    .post(EmptyListBean.class, "{\"empty\":null}");
+
+        assertNull(result3.empty);
+    }
+
 }
